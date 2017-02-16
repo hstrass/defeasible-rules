@@ -66,19 +66,19 @@ neg(neg(A), A) :- atom(A).
 
 %% semantics
 
-% -- for bookkeeping, count the number of literals in the language
-step(0..N) :- { literal(L) } = N.
+% -- for bookkeeping, count the number of atoms in the language
+step(0..N) :- { atom(L) } = N.
 
 %% a stable set is a consistent set of literals
 
-inconsistent :- literal(L), h(L), neg(L, NegL), h(NegL).
+inconsistent :- h(L), neg(L, NegL), h(NegL).
 
 :- inconsistent.
 
 %% that is closed under strict rules
 
 % a rule is applicable if its body holds
-applicable(R) :- rule(R), h(L) : body(R, L).
+%: applicable(R) :- rule(R), h(L) : body(R, L).
 
 % -- keeping book at which step the rules becomes first applicable
 holds_before(L, I) :- step(I), step(J), J<I, holds(L, J).
@@ -87,32 +87,31 @@ applicable(R, 0) :- rule(R), not body(R, _).
 applicable(R, I) :- step(I), rule(R), not applied_before(R, I), holds_before(L, I) : body(R, L).
 
 % strict rules *must* be applied
-applied(R) :- str(R), applicable(R).
+%: applied(R) :- str(R), applicable(R).
 
 % -- keeping book at which step the rule is applied
 applied(R, I) :- step(I), str(R), applicable(R, I).
 
 % if a rule has been applied, its head holds
-h(L) :- applied(R), head(R, L).
+%: h(L) :- applied(R), head(R, L).
 
 % -- keeping book at which step the literal has been firstly derived
 holds(L, I) :- applied(R, I), head(R, L), not holds_before(L, I).
+% projection
+h(L) :- holds(L, I).
 
 % -- providing information for constructing a derivation
-because(L, 0) :- holds(L, 0).
+poss_because(L, 0) :- holds(L, 0).
 poss_because(L, R) :- holds(L, I), applied(R, I), head(R, L).
 pref_because(L, R1, R2) :- poss_because(L, R1), poss_because(L, R2), R1 < R2.
 because(L, R) :- poss_because(L, R), not pref_because(L, _, R).
 
 %% and there is some subset of applicable defeasible rules
 
-{ chosen(R) } :- def(R), applicable(R).
+{ chosen(R, I) } :- def(R), applicable(R, I).
 
-applied(R) :- chosen(R).
-remains(R) :- def(R), applicable(R), not chosen(R).
-
-% -- keeping book at which step the chosen defeasible rules are applied
-applied(R, I) :- chosen(R), def(R), applicable(R, I).
+applied(R, I) :- chosen(R, I).
+remains(R) :- def(R), applicable(R, I), not chosen(R, I).
 
 %% that is maximal with respect to consistency
 
@@ -133,7 +132,7 @@ rules_ok :- rule_ok(R) : remains(R).
 rule_ok(R) :- x_applied(R), x_inconsistent.
 rule_ok(R) :- x_notApplied(R).
 
-% x_in are extra-in literals
+% x_h are literals that hold additionally
 
 x_h(L) :- h(L).
 
@@ -143,8 +142,9 @@ x_applied(R) :- str(R), x_applicable(R).
 
 x_h(L) :- x_applied(R), head(R, L).
 
-x_inconsistent :- literal(L), x_h(L), neg(L, NegL), x_h(NegL).
+x_inconsistent :- x_h(L), neg(L, NegL), x_h(NegL).
 
 % show 
 	
 #show h/1.
+%#show because/2.
