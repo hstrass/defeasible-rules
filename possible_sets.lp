@@ -41,7 +41,7 @@ hasHead(R) :- head(R, _).
 rule(R) :- head(R, _).
 rule(R) :- body(R, _).
 
-strict(R) :- rule(R), not def(R).
+str(R) :- rule(R), not def(R).
 
 % a literal is anything that occurs in the body or head of a rule
 
@@ -78,7 +78,7 @@ inconsistent :- literal(L), h(L), neg(L, NegL), h(NegL).
 applicable(R) :- rule(R), h(L) : body(R, L).
 
 % strict rules *must* be applied
-applied(R) :- strict(R), applicable(R).
+applied(R) :- str(R), applicable(R).
 
 % if a rule has been applied, its head holds
 h(L) :- applied(R), head(R, L).
@@ -114,13 +114,13 @@ x_h(L) :- h(L).
 
 x_applicable(R) :- rule(R), x_h(L) : body(R, L).
 
-x_applied(R) :- strict(R), x_applicable(R).
+x_applied(R) :- str(R), x_applicable(R).
 
 x_h(L) :- x_applied(R), head(R, L).
 
 x_inconsistent :- literal(L), x_h(L), neg(L, NegL), x_h(NegL).
 
-% holding literals need not have justifications
+%% where holding literals need not have justifications
 
 { h(L) } :- literal(L).
 

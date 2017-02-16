@@ -41,7 +41,7 @@ hasHead(R) :- head(R, _).
 rule(R) :- head(R, _).
 rule(R) :- body(R, _).
 
-strict(R) :- rule(R), not def(R).
+str(R) :- rule(R), not def(R).
 
 % a literal is anything that occurs in the body or head of a rule
 
@@ -66,6 +66,9 @@ neg(neg(A), A) :- atom(A).
 
 %% semantics
 
+% -- for bookkeeping, count the number of literals in the language
+step(0..N) :- { literal(L) } = N.
+
 %% a stable set is a consistent set of literals
 
 inconsistent :- literal(L), h(L), neg(L, NegL), h(NegL).
@@ -77,19 +80,35 @@ inconsistent :- literal(L), h(L), neg(L, NegL), h(NegL).
 % a rule is applicable if its body holds
 applicable(R) :- rule(R), h(L) : body(R, L).
 
+% -- keeping book at which step the rules becomes first applicable
+holds_before(L, I) :- step(I), step(J), J<I, holds(L, J).
+applied_before(R, I) :- step(I), step(J), J<I, applied(R, J).
+applicable(R, 0) :- rule(R), not body(R, _).
+applicable(R, I) :- step(I), rule(R), not applied_before(R, I), holds_before(L, I) : body(R, L).
+
 % strict rules *must* be applied
-applied(R) :- strict(R), applicable(R).
+applied(R) :- str(R), applicable(R).
+
+% -- keeping book at which step the rule is applied
+applied(R, I) :- step(I), str(R), applicable(R, I).
 
 % if a rule has been applied, its head holds
 h(L) :- applied(R), head(R, L).
 
+% -- keeping book at which step the literal has been firstly derived
+holds(L, I) :- applied(R, I), head(R, L), not holds_before(L, I).
+
 %% and there is some subset of applicable defeasible rules
 
-{ applied(R) } :- def(R), applicable(R).
+{ chosen(R) } :- def(R), applicable(R).
 
-remains(R) :- def(R), applicable(R), not applied(R).
+applied(R) :- chosen(R).
+remains(R) :- def(R), applicable(R), not chosen(R).
 
-% that is maximal with respect to consistency
+% -- keeping book at which step the chosen defeasible rules are applied
+applied(R, I) :- chosen(R), def(R), applicable(R, I).
+
+%% that is maximal with respect to consistency
 
 x_applied(R) | x_notApplied(R) :- remains(R).
 
@@ -114,7 +133,7 @@ x_h(L) :- h(L).
 
 x_applicable(R) :- rule(R), x_h(L) : body(R, L).
 
-x_applied(R) :- strict(R), x_applicable(R).
+x_applied(R) :- str(R), x_applicable(R).
 
 x_h(L) :- x_applied(R), head(R, L).
 
