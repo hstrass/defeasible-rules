@@ -98,6 +98,12 @@ h(L) :- applied(R), head(R, L).
 % -- keeping book at which step the literal has been firstly derived
 holds(L, I) :- applied(R, I), head(R, L), not holds_before(L, I).
 
+% -- providing information for constructing a derivation
+because(L, 0) :- holds(L, 0).
+poss_because(L, R) :- holds(L, I), applied(R, I), head(R, L).
+pref_because(L, R1, R2) :- poss_because(L, R1), poss_because(L, R2), R1 < R2.
+because(L, R) :- poss_because(L, R), not pref_because(L, _, R).
+
 %% and there is some subset of applicable defeasible rules
 
 { chosen(R) } :- def(R), applicable(R).
