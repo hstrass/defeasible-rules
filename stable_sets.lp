@@ -101,7 +101,7 @@ holds(L, I) :- applied(R, I), head(R, L), not holds_before(L, I).
 h(L) :- holds(L, I).
 
 % -- providing information for constructing a derivation
-poss_because(L, 0) :- holds(L, 0).
+poss_because(L, R) :- head(R, L), holds(L, 0).
 poss_because(L, R) :- holds(L, I), applied(R, I), head(R, L).
 pref_because(L, R1, R2) :- poss_because(L, R1), poss_because(L, R2), R1 < R2.
 because(L, R) :- poss_because(L, R), not pref_because(L, _, R).
