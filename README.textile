@@ -6,9 +6,11 @@ h3. Contents
 
 The implementation consists of three ASP encodings:
 
-* stable_sets.lp implementing the stable-set semantics
+* stable_sets.lp implementing the stable-set semantics and computing a derivation for each literal in each stable set
 * possible_sets.lp implementing the possible-set semantics
 * derivations.lp for computing all possible derivations from a given defeasible theory
+
+There are some example theories in the folder examples/.
 
 h3. Input syntax
 
@@ -24,7 +26,7 @@ An input defeasible theory is encoded as a logic program.
 
 h3. Usage
 
-* To compute the stable sets of a defeasible theories encoded in a file theory.lp, call clingo with both encodings:
+* To compute the stable sets of a defeasible theory encoded in a file theory.lp, call clingo with both encodings:
 
 ** clingo 0 stable_sets.lp theory.lp
 
