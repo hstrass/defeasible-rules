@@ -108,7 +108,9 @@ because(L, R) :- poss_because(L, R), not pref_because(L, _, R).
 
 %% and there is some subset of applicable defeasible rules
 
-{ chosen(R, I) } :- def(R), applicable(R, I).
+applicable_before(R, I) :- step(I), step(J), J<I, applicable(R, J).
+
+{ chosen(R, I) } :- def(R), applicable(R, I), not applicable_before(R, I).
 
 applied(R, I) :- chosen(R, I).
 remains(R) :- def(R), applicable(R, I), not chosen(R, I).
@@ -147,4 +149,4 @@ x_inconsistent :- x_h(L), neg(L, NegL), x_h(NegL).
 % show 
 	
 #show h/1.
-%#show because/2.
+#show because/2.
